@@ -1,0 +1,20 @@
+# ninja log v6
+37	748	7925326374289316	C:/Users/berke/OneDrive/Desktop/Projects/Alexandria/build/Desktop_Qt_6_9_2_MinGW_64_bit-Debug/Alexandria_autogen/mocs_compilation.cpp	e58b7d344d36ec3e
+37	748	7925326374289316	Alexandria_autogen/timestamp	e58b7d344d36ec3e
+753	3775	7925326375399249	CMakeFiles/Alexandria.dir/mainwindow.cpp.obj	2db5973e374fbd02
+37	748	7925326374289316	Alexandria_autogen/mocs_compilation.cpp	e58b7d344d36ec3e
+37	748	7925326374289316	C:/Users/berke/OneDrive/Desktop/Projects/Alexandria/build/Desktop_Qt_6_9_2_MinGW_64_bit-Debug/Alexandria_autogen/timestamp	e58b7d344d36ec3e
+979	4162	7925318464604268	CMakeFiles/Alexandria.dir/main.cpp.obj	40e27c597f29a512
+983	3696	7925324323373118	CMakeFiles/Alexandria.dir/user.cpp.obj	320accdabc440e6
+762	2866	7925326375399249	CMakeFiles/Alexandria.dir/book.cpp.obj	464e3055bce490b8
+749	3658	7925326375241063	CMakeFiles/Alexandria.dir/Alexandria_autogen/mocs_compilation.cpp.obj	1b840c49890d0bb
+758	3086	7925326375399249	CMakeFiles/Alexandria.dir/databasemanager.cpp.obj	7ba4ed3c0cc29709
+35	2237	7925328493328858	build.ninja	eb36149e50ff3e44
+48	274	7925328495227744	Alexandria_autogen/timestamp	e58b7d344d36ec3e
+48	274	7925328495227744	Alexandria_autogen/mocs_compilation.cpp	e58b7d344d36ec3e
+48	274	7925328495227744	C:/Users/berke/OneDrive/Desktop/Projects/Alexandria/build/Desktop_Qt_6_9_2_MinGW_64_bit-Debug/Alexandria_autogen/timestamp	e58b7d344d36ec3e
+48	274	7925328495227744	C:/Users/berke/OneDrive/Desktop/Projects/Alexandria/build/Desktop_Qt_6_9_2_MinGW_64_bit-Debug/Alexandria_autogen/mocs_compilation.cpp	e58b7d344d36ec3e
+276	4609	7925328497451591	CMakeFiles/Alexandria.dir/mainwindow.cpp.obj	2db5973e374fbd02
+280	6038	7925328497451591	CMakeFiles/Alexandria.dir/shell.c.obj	48d769881ef1b0ea
+283	12334	7925328497451591	CMakeFiles/Alexandria.dir/sqlite3.c.obj	a02b75a9cead86c6
+12335	12733	7925328617990735	Alexandria.exe	c8a633b2d896c82f
