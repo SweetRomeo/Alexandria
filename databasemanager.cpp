@@ -1,182 +1,208 @@
 #include "databasemanager.h"
-#include <iostream>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QVariant>
+#include <QDebug>
+#include <QDir>
 
+// Constructor: Veritabanı bağlantısını kurar
 DatabaseManager::DatabaseManager(const std::string &dbPath) {
-    (void)openConnection(dbPath);
+    // Qt'de veritabanı bağlantısı ekliyoruz
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(QString::fromStdString(dbPath));
+
+    if (!db.open()) {
+        qCritical() << "Veritabanı açılamadı:" << db.lastError().text();
+    } else {
+        qDebug() << "Veritabanı başarıyla açıldı:" << QString::fromStdString(dbPath);
+        // Tablolar yoksa oluştur
+        createTables();
+    }
 }
 
 DatabaseManager::~DatabaseManager() {
-    closeConnection();
+    // Qt veritabanı bağlantısını otomatik yönetir, ancak açıkça kapatmak istersen:
+    QString connectionName;
+    {
+        auto db = QSqlDatabase::database();
+        connectionName = db.connectionName();
+        if (db.isOpen()) {
+            db.close();
+        }
+    }
+    QSqlDatabase::removeDatabase(connectionName);
 }
 
+// Qt kullandığımız için openConnection metoduna artık dışarıdan ihtiyaç duymayabiliriz
+// ama yapıyı bozmamak için bırakıyorum.
 bool DatabaseManager::openConnection(const std::string &dbPath) {
-    if (sqlite3_open(dbPath.c_str(), &db)) {
-        std::cerr << "Failed while opening the DataBase " << sqlite3_errmsg(db) << std::endl;
-        return false;
-    }
-    std::cout << "Successfully opened the DataBase" << std::endl;
-    return true;
+    QSqlDatabase db = QSqlDatabase::database();
+    if (db.isOpen()) return true;
+
+    db.setDatabaseName(QString::fromStdString(dbPath));
+    return db.open();
 }
 
 bool DatabaseManager::createTables() {
-    const std::string sqlBooks = "CREATE TABLE IF NOT EXISTS BOOKS("
-                                 "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-                                 "TITLE TEXT NOT NULL,"
-                                 "AUTHOR TEXT NOT NULL,"
-                                 "ISBN TEXT UNIQUE NOT NULL,"
-                                 "STATUS INTEGER DEFAULT 0);";
+    QSqlQuery query;
+    bool success = true;
 
-    const std::string sqlUsers = "CREATE TABLE IF NOT EXISTS USERS("
-                                 "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-                                 "NAME TEXT NOT NULL,"
-                                 "EMAIL TEXT UNIQUE NOT NULL);";
+    // BOOKS Tablosu
+    QString sqlBooks = "CREATE TABLE IF NOT EXISTS BOOKS ("
+                       "ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+                       "TITLE TEXT NOT NULL, "
+                       "AUTHOR TEXT NOT NULL, "
+                       "ISBN TEXT UNIQUE NOT NULL, "
+                       "STATUS INTEGER DEFAULT 0)";
 
-    const std::string sqlTransactions = "CREATE TABLE IF NOT EXISTS TRANSACTIONS("
-                                        "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-                                        "USER_ID INTEGER,"
-                                        "BOOK_ID INTEGER,"
-                                        "BORROW_DATE TEXT,"
-                                        "RETURN_DATE TEXT,"
-                                        "FOREIGN KEY(USER_ID) REFERENCES USERS(ID),"
-                                        "FOREIGN KEY(BOOK_ID) REFERENCES BOOKS(ID));";
+    if (!query.exec(sqlBooks)) {
+        qCritical() << "Books tablosu oluşturulamadı:" << query.lastError();
+        success = false;
+    }
 
-    return executeQuery(sqlBooks) &&
-           executeQuery(sqlUsers) &&
-           executeQuery(sqlTransactions);
+    // USERS Tablosu
+    QString sqlUsers = "CREATE TABLE IF NOT EXISTS USERS ("
+                       "ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+                       "NAME TEXT NOT NULL, "
+                       "EMAIL TEXT UNIQUE NOT NULL)";
+
+    if (!query.exec(sqlUsers)) {
+        qCritical() << "Users tablosu oluşturulamadı:" << query.lastError();
+        success = false;
+    }
+
+    // TRANSACTIONS Tablosu
+    QString sqlTransactions = "CREATE TABLE IF NOT EXISTS TRANSACTIONS ("
+                              "ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+                              "USER_ID INTEGER, "
+                              "BOOK_ID INTEGER, "
+                              "BORROW_DATE TEXT, "
+                              "RETURN_DATE TEXT, "
+                              "FOREIGN KEY(USER_ID) REFERENCES USERS(ID), "
+                              "FOREIGN KEY(BOOK_ID) REFERENCES BOOKS(ID))";
+
+    if (!query.exec(sqlTransactions)) {
+        qCritical() << "Transactions tablosu oluşturulamadı:" << query.lastError();
+        success = false;
+    }
+
+    return success;
 }
 
 bool DatabaseManager::addUser(const User &user) const {
-    const std::string sql = "INSERT INTO USERS (ID, NAME, EMAIL) VALUES (?, ?, ?);";
-    sqlite3_stmt *stmt;
+    QSqlQuery query;
+    // Qt'de ? yerine :parametreIsmi kullanmak (Oracle stili) daha okunaklıdır.
+    query.prepare("INSERT INTO USERS (NAME, EMAIL) VALUES (:name, :email)");
 
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+    // NOT: ID autoincrement olduğu için insert sorgusuna ID'yi manuel eklememeliyiz,
+    // veritabanı kendi atamalıdır. Eğer User nesnesinde ID zorunluysa ona göre düzenlenir.
+
+    query.bindValue(":name", QString::fromStdString(user.getName()));
+    query.bindValue(":email", QString::fromStdString(user.getEmail()));
+
+    if (!query.exec()) {
+        qCritical() << "Kullanıcı eklenemedi:" << query.lastError();
         return false;
     }
-
-    sqlite3_bind_int(stmt, 1, user.getId());
-    sqlite3_bind_text(stmt, 2, user.getName().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, user.getEmail().c_str(), -1, SQLITE_TRANSIENT);
-    const bool result = sqlite3_step(stmt) == SQLITE_DONE;
-    sqlite3_finalize(stmt);
-    return result;
+    return true;
 }
 
 bool DatabaseManager::addBook(const Book &book) const {
-    const std::string sql = "INSERT INTO BOOKS (TITLE, AUTHOR, ISBN, STATUS) VALUES (?, ?, ?, ?);";
-    sqlite3_stmt* stmt;
+    QSqlQuery query;
+    query.prepare("INSERT INTO BOOKS (TITLE, AUTHOR, ISBN, STATUS) "
+                  "VALUES (:title, :author, :isbn, :status)");
 
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+    query.bindValue(":title", QString::fromStdString(book.getTitle()));
+    query.bindValue(":author", QString::fromStdString(book.getAuthor()));
+    query.bindValue(":isbn", QString::fromStdString(book.getIsbn()));
+    query.bindValue(":status", static_cast<int>(book.getStatus()));
+
+    if (!query.exec()) {
+        qCritical() << "Kitap eklenemedi:" << query.lastError();
         return false;
     }
-
-    sqlite3_bind_text(stmt, 1, book.getTitle().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 2, book.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, book.getIsbn().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 4, static_cast<int>(book.getStatus()));
-
-    const auto result = sqlite3_step(stmt) == SQLITE_DONE;
-    sqlite3_finalize(stmt);
-    return result;
+    return true;
 }
 
 bool DatabaseManager::deleteBookById(const int bookId) const {
-    std::string sql = "DELETE FROM BOOKS WHERE ID = ?;";
-    sqlite3_stmt* stmt;
+    QSqlQuery query;
+    query.prepare("DELETE FROM BOOKS WHERE ID = :id");
+    query.bindValue(":id", bookId);
 
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-        std::cerr << "Sorgu hazirlanamadi: " << sqlite3_errmsg(db) << std::endl;
+    if (!query.exec()) {
+        qCritical() << "Kitap silinemedi:" << query.lastError();
         return false;
     }
-
-    sqlite3_bind_int(stmt, 1, bookId);
-
-    const auto rc = sqlite3_step(stmt);
-
-    sqlite3_finalize(stmt);
-
-    return rc == SQLITE_DONE;
+    return true;
 }
 
 bool DatabaseManager::deleteUserById(const int userId) const {
-    std::string sql = "DELETE FROM USERS WHERE ID = ?;";
-    sqlite3_stmt* stmt;
+    QSqlQuery query;
+    query.prepare("DELETE FROM USERS WHERE ID = :id");
+    query.bindValue(":id", userId);
 
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-        std::cerr << "Sorgu hazirlanamadi: " << sqlite3_errmsg(db) << std::endl;
+    if (!query.exec()) {
+        qCritical() << "Kullanıcı silinemedi:" << query.lastError();
         return false;
     }
-
-    sqlite3_bind_int(stmt, 1, userId);
-
-    int rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-
-    return rc == SQLITE_DONE;
+    return true;
 }
 
-bool DatabaseManager::updateBookStatus(int bookId, BookStatus &newStatus) const {
-    const std::string sql = "UPDATE BOOKS SET BOOK_ID = ? WHERE ID = ?;";
-    sqlite3_stmt* stmt;
+bool DatabaseManager::updateBookStatus(int bookId, BookStatus newStatus) const {
+    QSqlQuery query;
+    // Düzeltme: Orijinal kodda SET BOOK_ID = ? vardı, bu muhtemelen hataydı.
+    // Doğrusu SET STATUS = ? olmalı.
+    query.prepare("UPDATE BOOKS SET STATUS = :status WHERE ID = :id");
 
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
-    {
+    query.bindValue(":status", static_cast<int>(newStatus));
+    query.bindValue(":id", bookId);
+
+    if (!query.exec()) {
+        qCritical() << "Kitap durumu güncellenemedi:" << query.lastError();
         return false;
     }
-
-    sqlite3_bind_int(stmt, 1, static_cast<int>(newStatus));
-    sqlite3_bind_int(stmt, 2, bookId);
-
-    const auto rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-    return rc == SQLITE_DONE;
+    return true;
 }
 
 std::vector<Book> DatabaseManager::getAllBooks() const {
-    std::vector<Book> Books;
-    std::string sql = "SELECT ID, TITLE, AUTHOR, ISBN, STATUS FROM BOOKS;";
-    sqlite3_stmt* stmt;
+    std::vector<Book> books;
+    QSqlQuery query("SELECT ID, TITLE, AUTHOR, ISBN, STATUS FROM BOOKS");
 
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-        std::cerr << "Failed to create " << sqlite3_errmsg(db) << std::endl;
-        return Books;
+    if (!query.exec()) {
+        qCritical() << "Kitaplar getirilemedi:" << query.lastError();
+        return books;
     }
 
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        int id = sqlite3_column_int(stmt, 0);
-
-        const unsigned char* titleText = sqlite3_column_text(stmt, 1);
-        const unsigned char* authorText = sqlite3_column_text(stmt, 2);
-        const unsigned char* isbnText = sqlite3_column_text(stmt, 3);
-
-        std::string title = titleText ? reinterpret_cast<const char*>(titleText) : "";
-        std::string author = authorText ? reinterpret_cast<const char*>(authorText) : "";
-        std::string isbn = isbnText ? reinterpret_cast<const char*>(isbnText) : "";
-
-        int statusInt = sqlite3_column_int(stmt, 4);
+    while (query.next()) {
+        int id = query.value("ID").toInt();
+        std::string title = query.value("TITLE").toString().toStdString();
+        std::string author = query.value("AUTHOR").toString().toStdString();
+        std::string isbn = query.value("ISBN").toString().toStdString();
+        int statusInt = query.value("STATUS").toInt();
         auto status = static_cast<BookStatus>(statusInt);
 
-        Books.emplace_back(id, title, author, isbn, status);
+        // Book sınıfının constructor yapısına göre nesneyi oluşturup listeye atıyoruz
+        books.emplace_back(id, title, author, isbn, status);
     }
 
-    sqlite3_finalize(stmt);
-
-    return Books;
+    return books;
 }
 
-bool DatabaseManager::executeQuery(const std::string &query) {
-    if (const int rc = sqlite3_exec(db, query.c_str(), nullptr, nullptr, &zErrMsg); rc != SQLITE_OK)
-    {
-        std::cerr << "SQL error: " << zErrMsg << std::endl;
-        sqlite3_free(zErrMsg);
+// executeQuery helper fonksiyonuna Qt yapısında genelde ihtiyaç kalmaz
+// çünkü QSqlQuery kendi içinde bunu halleder ama uyumluluk için:
+bool DatabaseManager::executeQuery(const std::string &queryStr) {
+    QSqlQuery query;
+    if (!query.exec(QString::fromStdString(queryStr))) {
+        qCritical() << "Sorgu hatası:" << query.lastError();
         return false;
     }
     return true;
 }
 
 void DatabaseManager::closeConnection() {
-    if (db)
-    {
-        sqlite3_close(db);
-        db = nullptr;
-    }
+    QString connectionName = QSqlDatabase::database().connectionName();
+    QSqlDatabase::database().close();
+    QSqlDatabase::removeDatabase(connectionName);
+    qDebug() << "Veritabanı bağlantısı kapatıldı.";
 }

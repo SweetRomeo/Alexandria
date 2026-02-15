@@ -1,0 +1,80 @@
+cmake_minimum_required(VERSION 3.16)
+
+# C dilini (sqlite3.c'yi çıkardığımız için) languages kısmından silebiliriz, sadece CXX yeterli.
+project(Alexandria VERSION 0.1 LANGUAGES CXX)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Hem Widgets hem de Sql modülünü arıyoruz
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql)
+
+# Proje dosyaları (sqlite3.c vb. dosyalari kaldirdim)
+set(PROJECT_SOURCES
+        main.cpp
+        mainwindow.cpp
+        mainwindow.h
+        mainwindow.ui
+        databasemanager.cpp
+        databasemanager.h
+        book.cpp
+        book.h
+        user.cpp
+        user.h
+)
+
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    find_package(Qt6 REQUIRED COMPONENTS Core Sql)
+
+    qt_add_executable(Alexandria
+        MANUAL_FINALIZATION
+        ${PROJECT_SOURCES}
+    )
+else()
+    # Qt 5 Fallback
+    if(ANDROID)
+        add_library(Alexandria SHARED
+            ${PROJECT_SOURCES}
+        )
+    else()
+        add_executable(Alexandria
+            ${PROJECT_SOURCES}
+        )
+    endif()
+endif()
+
+# Kütüphaneleri Linkleme (En önemli kısım burası)
+target_link_libraries(Alexandria PRIVATE
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Sql
+)
+
+# İşletim sistemi özel ayarları (MacOS/iOS Bundle ID)
+if(${QT_VERSION} VERSION_LESS 6.1.0)
+  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.Alexandria)
+endif()
+
+set_target_properties(Alexandria PROPERTIES
+    ${BUNDLE_ID_OPTION}
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOSX_BUNDLE TRUE
+    WIN32_EXECUTABLE TRUE
+)
+
+include(GNUInstallDirs)
+install(TARGETS Alexandria
+    BUNDLE DESTINATION .
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+if(QT_VERSION_MAJOR EQUAL 6)
+    qt_finalize_executable(Alexandria)
+endif()

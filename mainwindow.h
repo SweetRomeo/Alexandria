@@ -2,12 +2,11 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
-QT_END_NAMESPACE
+#include <QTableWidget>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QLabel>
+#include "databasemanager.h" // Veritabanı sınıfını ekledik
 
 class MainWindow : public QMainWindow
 {
@@ -17,7 +16,21 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void onAddBookClicked();    // Ekleme butonu
+    void onDeleteBookClicked(); // Silme butonu (Yeni ekledik)
+
 private:
-    Ui::MainWindow *ui;
+    void setupUI();      // Arayüzü oluşturur
+    void loadBooks();    // Veritabanından kitapları çeker ve tabloya yazar
+
+    QWidget *centralWidget;
+    QTableWidget *bookTable;
+    QPushButton *btnAddBook;
+    QPushButton *btnDeleteBook; // Silme butonu
+
+    // Veritabanı yöneticimiz
+    DatabaseManager *dbManager;
 };
+
 #endif // MAINWINDOW_H
