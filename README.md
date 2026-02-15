@@ -1,98 +1,98 @@
-# 📚 Alexandria - Kütüphane Yönetim Sistemi
+# 📚 Alexandria - Library Management System
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Language](https://img.shields.io/badge/language-C%2B%2B17-blue)
 ![Framework](https://img.shields.io/badge/framework-Qt6-green)
 ![Build](https://img.shields.io/badge/build-CMake-orange)
 
-**Alexandria**, modern C++ ve Qt framework'ü kullanılarak geliştirilmiş, hızlı, güvenli ve kullanıcı dostu bir masaüstü kütüphane yönetim sistemidir. İskenderiye Kütüphanesi'nden ilham alan bu proje, kitap envanterini yönetmeyi, takip etmeyi ve kütüphane operasyonlarını dijitalleştirmeyi hedefler.
+**Alexandria** is a modern, fast, and secure desktop library management system built using **C++17** and the **Qt 6 framework**. Inspired by the Great Library of Alexandria, this project aims to streamline book inventory management and digitize library operations with a user-friendly interface.
 
-## 🚀 Özellikler
+## 🚀 Features
 
-* **Modern Arayüz:** Qt Widgets ile geliştirilmiş temiz, responsive ve kullanıcı dostu grafik arayüz.
-* **Güvenli Veritabanı:** SQLite ve QtSql modülü ile entegre, yerel ve güvenli veri saklama.
-* **Kitap Yönetimi:**
-    * ➕ **Ekleme:** Kitap Adı, Yazar ve ISBN bilgileriyle yeni kayıt oluşturma.
-    * 📋 **Listeleme:** Tüm envanteri anlık güncellenen tablo yapısında görüntüleme.
-    * 🗑️ **Silme:** Seçili kitapları veritabanından güvenli bir şekilde kaldırma.
-    * 🔄 **Durum Takibi:** Kitabın "Mevcut" veya "Ödünç Verildi" durumunu izleme.
-* **Çapraz Platform:** Windows, Linux ve macOS üzerinde çalışabilir yapı.
+* **Modern Interface:** Clean, responsive, and user-friendly GUI built with Qt Widgets.
+* **Secure Database:** Integrated with SQLite via the QtSql module for robust local data storage.
+* **Book Management:**
+    * ➕ **Add:** Create new records with Title, Author, and ISBN.
+    * 📋 **List:** View the entire inventory in a real-time updating table.
+    * 🗑️ **Delete:** Safely remove selected books from the database.
+    * 🔄 **Status Tracking:** Monitor book availability ("Available" or "Borrowed").
+* **Cross-Platform:** Designed to run seamlessly on Windows, Linux, and macOS.
 
-## 🛠️ Kullanılan Teknolojiler
+## 🛠️ Tech Stack
 
-Bu proje, yüksek performans ve sürdürülebilirlik için aşağıdaki teknolojilerle inşa edilmiştir:
+This project is built with performance and maintainability in mind:
 
-* **Programlama Dili:** C++17
+* **Language:** C++17
 * **Framework:** Qt 6 (Core, Gui, Widgets, Sql)
-* **Veritabanı:** SQLite 3 (Gömülü / Embedded)
-* **Derleme Sistemi:** CMake (v3.16+)
+* **Database:** SQLite 3 (Embedded)
+* **Build System:** CMake (v3.16+)
 
-## ⚙️ Kurulum ve Derleme
+## ⚙️ Installation & Build
 
-Projeyi kendi bilgisayarınızda derleyip çalıştırmak için aşağıdaki adımları izleyin.
+Follow these steps to build and run the project on your local machine.
 
-### Gereksinimler
+### Prerequisites
 
-* C++17 uyumlu bir derleyici (GCC, Clang veya MSVC)
-* [Qt 6 SDK](https://www.qt.io/download) (Gerekli bileşenler: `Qt Sql`, `Qt Widgets`)
+* A C++17 compliant compiler (GCC, Clang, or MSVC)
+* [Qt 6 SDK](https://www.qt.io/download) (Required components: `Qt Sql`, `Qt Widgets`)
 * [CMake](https://cmake.org/)
 
-### Adım Adım Kurulum
+### Step-by-Step Guide
 
-1.  **Repoyu klonlayın:**
+1.  **Clone the repository:**
     ```bash
     git clone [https://github.com/SweetRomeo/Alexandria.git](https://github.com/SweetRomeo/Alexandria.git)
     cd Alexandria
     ```
 
-2.  **Derleme klasörü oluşturun:**
+2.  **Create a build directory:**
     ```bash
     mkdir build && cd build
     ```
 
-3.  **Projeyi yapılandırın (CMake):**
+3.  **Configure the project (CMake):**
     ```bash
     cmake ..
     ```
-    *(Not: Eğer Qt yolunuzu sistem bulamazsa `-DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/..."` parametresini eklemeniz gerekebilir.)*
+    *(Note: If CMake cannot find your Qt installation, you may need to add `-DCMAKE_PREFIX_PATH="path/to/qt/6.x.x/..."`)*
 
-4.  **Derleyin:**
+4.  **Build the application:**
     ```bash
     cmake --build .
     ```
 
-5.  **Çalıştırın:**
-    Oluşan `Alexandria` (veya Windows'ta `Debug/Alexandria.exe`) dosyasını çalıştırın.
-    > Uygulama ilk açılışta `alexandria.db` veritabanı dosyasını otomatik olarak oluşturacaktır.
+5.  **Run:**
+    Execute the generated `Alexandria` (or `Debug/Alexandria.exe` on Windows) file.
+    > The application will automatically generate the `alexandria.db` database file upon the first launch.
 
-## 📸 Ekran Görüntüleri
+## 📸 Screenshots
 
-*(Buraya uygulamanın ekran görüntülerini ekleyebilirsiniz. Örneğin: `![Ana Ekran](docs/screenshot.png)`)*
+*(You can add screenshots of the application here. e.g.: `![Main Screen](docs/screenshot.png)`)*
 
-## 🗺️ Yol Haritası (Roadmap)
+## 🗺️ Roadmap
 
-Projenin geliştirilme sürecinde planlanan özellikler:
+Future plans and upcoming features:
 
-- [x] Temel veritabanı mimarisi (Kitaplar, Kullanıcılar)
-- [x] Qt tabanlı grafik arayüze (GUI) geçiş
-- [x] Kitap Ekleme / Silme / Listeleme fonksiyonları
-- [ ] Kullanıcı Yönetim Sistemi (Üye ekleme/silme)
-- [ ] Ödünç Alma & İade Etme (Transaction) Sistemi
-- [ ] Gelişmiş Arama ve Filtreleme
-- [ ] İstatistik Paneli
+- [x] Basic Database Architecture (Books, Users)
+- [x] Transition to Qt GUI
+- [x] Book Add / Delete / List functionality
+- [ ] User Management System (Add/Remove Members)
+- [ ] Borrowing & Return System (Transaction Logic)
+- [ ] Advanced Search & Filtering
+- [ ] Statistics Dashboard
 
-## 🤝 Katkıda Bulunma
+## 🤝 Contributing
 
-Katkılarınızı memnuniyetle karşılıyoruz!
-1.  Bu repoyu "Fork"layın.
-2.  Yeni bir özellik dalı (branch) oluşturun (`git checkout -b ozellik/YeniOzellik`).
-3.  Değişikliklerinizi kaydedin (`git commit -m 'Yeni özellik eklendi'`).
-4.  Dalınızı gönderin (`git push origin ozellik/YeniOzellik`).
-5.  Bir "Pull Request" oluşturun.
+Contributions are welcome!
+1.  Fork the repository.
+2.  Create a new feature branch (`git checkout -b feature/AmazingFeature`).
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4.  Push to the branch (`git push origin feature/AmazingFeature`).
+5.  Open a Pull Request.
 
-## 📄 Lisans
+## 📄 License
 
-Bu proje [MIT Lisansı](LICENSE) ile lisanslanmıştır. Daha fazla bilgi için `LICENSE` dosyasına bakabilirsiniz.
+This project is licensed under the [MIT License](LICENSE). See the `LICENSE` file for details.
 
 ---
-**Geliştirici:** [SweetRomeo](https://github.com/SweetRomeo)
+**Developer:** [SweetRomeo](https://github.com/SweetRomeo)
