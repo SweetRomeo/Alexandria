@@ -1,0 +1,2 @@
+1-) Qt pek çok kütüphaneyi içinde barındıran bir frameworktür. sqlite gibi veri tabanı yönetim araçları da gee bu framework içerisinde mevcuttur. Buna göre sqlite3'ü
+indirip kurmak yerine doğrudan Qt'nin sahip olduğu Sql kütüphanesi Cmake dosyası düzenlenir. (find_package benzeri komutlar kullanılır.)
