@@ -1,2 +1,26 @@
 1-) Qt pek çok kütüphaneyi içinde barındıran bir frameworktür. sqlite gibi veri tabanı yönetim araçları da gee bu framework içerisinde mevcuttur. Buna göre sqlite3'ü
 indirip kurmak yerine doğrudan Qt'nin sahip olduğu Sql kütüphanesi Cmake dosyası düzenlenir. (find_package benzeri komutlar kullanılır.)
+
+Aşağıdaki satırlar varsa Sql'e uygun şekilde düzenlenmeli yoksa eklenmeli:
+
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql)
+
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    find_package(Qt6 REQUIRED COMPONENTS Core Sql)
+
+target_sources(Alexandria
+  PRIVATE
+    databasemanager.h databasemanager.cpp
+)
+qt_add_executable(Alexandria
+        MANUAL_FINALIZATION
+        ${PROJECT_SOURCES}
+    )
+target_link_libraries(Alexandria PRIVATE
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Sql
+)
+
+2-) 
