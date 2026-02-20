@@ -23,4 +23,7 @@ target_link_libraries(Alexandria PRIVATE
     Qt${QT_VERSION_MAJOR}::Sql
 )
 
-2-) 
+2-) Düzenlemeler yapıldıktan artık programcı aşağıdaki include ön işlemci komutunu yazabilir:
+#include <QSqlDatabase>
+
+
